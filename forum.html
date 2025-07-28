@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Forum – StockAura</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+ 
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+        
+      </ul>
+    </li>
+     <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+  <main>
+    <h2>🗣️ Retail Investors Forum</h2>
+
+    <form id="forum-form">
+      <textarea id="comment-input" placeholder="Share your thoughts..."></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+
+    <div>
+      <label for="sort">Sort by:</label>
+      <select id="sort">
+        <option value="newest" selected>Newest</option>
+        <option value="oldest">Oldest</option>
+      </select>
+    </div>
+
+    <div id="comments-container"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById('forum-form');
+    const input = document.getElementById('comment-input');
+    const container = document.getElementById('comments-container');
+    const sortSelect = document.getElementById('sort');
+
+    let comments = JSON.parse(localStorage.getItem("stockpulse_comments") || "[]");
+
+    function saveComments() {
+      localStorage.setItem("stockpulse_comments", JSON.stringify(comments));
+    }
+
+    function generateId() {
+      return '_' + Math.random().toString(36).substring(2, 10);
+    }
+
+    function renderComments() {
+      container.innerHTML = "";
+
+      const sorted = [...comments];
+      sorted.sort((a, b) =>
+        sortSelect.value === "newest" ? b.time - a.time : a.time - b.time
+      );
+
+      sorted.forEach(comment => {
+        const div = document.createElement('div');
+        div.className = "comment";
+
+        const liked = comment.liked || false;
+        const disliked = comment.disliked || false;
+
+        div.innerHTML = `
+          <p>${escapeHtml(comment.text)}</p>
+          <div class="comment-actions">
+            <button class="like-btn ${liked ? 'active' : ''}">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M2 21h4V9H2v12zM23 10c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 2 7.59 8.59C7.21 8.95 7 9.45 7 10v9c0 1.1.9 2 2 2h7c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1z"/></svg>
+              ${comment.likes || 0}
+            </button>
+            <button class="dislike-btn ${disliked ? 'active' : ''}">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22 3h-4v12h4V3zm-7 0c-.83 0-1.54.5-1.84 1.22L7.14 11.27c-.09.23-.14.47-.14.73v1c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L17.83 22l6.59-6.59c.38-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2h-6z"/></svg>
+              ${comment.dislikes || 0}
+            </button>
+            <button class="reply-toggle">Reply</button>
+          </div>
+          <small>Posted on ${new Date(comment.time).toLocaleString()}</small>
+          <div class="reply-container">
+            ${(comment.replies || []).map(reply => `
+              <div class="reply">
+                ${escapeHtml(reply.text)}
+                <small>${new Date(reply.time).toLocaleString()}</small>
+              </div>
+            `).join("")}
+            <div class="reply-form" style="display:none;">
+              <textarea placeholder="Your reply..."></textarea>
+              <button class="post-reply">Post</button>
+            </div>
+          </div>
+        `;
+
+        
+        div.querySelector(".like-btn").onclick = () => {
+          comment.likes = comment.likes || 0;
+          comment.dislikes = comment.dislikes || 0;
+          comment.liked = !comment.liked;
+          if (comment.liked) {
+            comment.likes++;
+            if (comment.disliked) {
+              comment.disliked = false;
+              comment.dislikes--;
+            }
+          } else {
+            comment.likes--;
+          }
+          saveComments();
+          renderComments();
+        };
+
+       
+        div.querySelector(".dislike-btn").onclick = () => {
+          comment.dislikes = comment.dislikes || 0;
+          comment.likes = comment.likes || 0;
+          comment.disliked = !comment.disliked;
+          if (comment.disliked) {
+            comment.dislikes++;
+            if (comment.liked) {
+              comment.liked = false;
+              comment.likes--;
+            }
+          } else {
+            comment.dislikes--;
+          }
+          saveComments();
+          renderComments();
+        };
+
+       
+        div.querySelector(".reply-toggle").onclick = () => {
+          const rf = div.querySelector(".reply-form");
+          rf.style.display = rf.style.display === "none" ? "block" : "none";
+        };
+
+        
+        div.querySelector(".post-reply").onclick = () => {
+          const textarea = div.querySelector(".reply-form textarea");
+          const replyText = textarea.value.trim();
+          if (!replyText) return;
+          comment.replies = comment.replies || [];
+          comment.replies.push({
+            text: replyText,
+            time: Date.now()
+          });
+          textarea.value = "";
+          saveComments();
+          renderComments();
+        };
+
+        container.appendChild(div);
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      comments.push({
+        text,
+        time: Date.now(),
+        likes: 0,
+        dislikes: 0,
+        liked: false,
+        disliked: false,
+        replies: []
+      });
+      input.value = "";
+      saveComments();
+      renderComments();
+    });
+
+    sortSelect.addEventListener("change", renderComments);
+    renderComments();
+  </script>
+</body>
+</html>
