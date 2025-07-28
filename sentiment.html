@@ -1,0 +1,71 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sentiment Analysis – StockAura</title>
+  <link rel="stylesheet" href="styles.css" />  
+</head>
+<body>
+ <nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+      </ul>
+    </li>
+     <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+  <main class="sentiment-main">
+    <h2>🎯 Stock Sentiment Analyzer</h2>
+    <select id="ticker-select">
+  <option value="">-- Choose a ticker --</option>
+  <option value="AAPL">Apple (AAPL)</option>
+  <option value="GOOGL">Alphabet / Google (GOOGL)</option>
+  <option value="AMZN">Amazon (AMZN)</option>
+  <option value="TSLA">Tesla (TSLA)</option>
+  <option value="MSFT">Microsoft (MSFT)</option>
+  <option value="META">Meta / Facebook (META)</option>
+  <option value="NFLX">Netflix (NFLX)</option>
+  <option value="NVDA">NVIDIA (NVDA)</option>
+  <option value="AMD">Advanced Micro Devices (AMD)</option>
+  <option value="INTC">Intel (INTC)</option>
+  <option value="BA">Boeing (BA)</option>
+  <option value="DIS">Disney (DIS)</option>
+  <option value="JPM">JPMorgan Chase (JPM)</option>
+  <option value="BAC">Bank of America (BAC)</option>
+  <option value="WMT">Walmart (WMT)</option>
+  <option value="T">AT&T (T)</option>
+  <option value="VZ">Verizon (VZ)</option>
+  <option value="PFE">Pfizer (PFE)</option>
+  <option value="MRNA">Moderna (MRNA)</option>
+  <option value="XOM">ExxonMobil (XOM)</option>
+  <option value="CVX">Chevron (CVX)</option>
+  <option value="NKE">Nike (NKE)</option>
+  <option value="KO">Coca-Cola (KO)</option>
+  <option value="PEP">PepsiCo (PEP)</option>
+  <option value="MCD">McDonald's (MCD)</option>
+  <option value="SBUX">Starbucks (SBUX)</option>
+  <option value="ADBE">Adobe (ADBE)</option>
+  <option value="CRM">Salesforce (CRM)</option>
+  <option value="UBER">Uber (UBER)</option>
+  <option value="LYFT">Lyft (LYFT)</option>
+</select>
+
+    <button onclick="analyzeSentiment()">Analyze</button>
+    <div id="sentiment-result"></div>
+  </main>
+  <script src="js/script.js"></script>
+</body>
