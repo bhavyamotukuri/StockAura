@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Market News – StockAura</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+        
+      </ul>
+    </li>
+     <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="news-main">
+  <h1>Latest Market News</h1>
+  <div id="news-container">
+    <p>Loading news...</p>
+  </div>
+  <div id="error-message"></div>
+</main>
+
+<script>
+  const newsContainer = document.getElementById('news-container');
+  const errorMessage = document.getElementById('error-message');
+
+  async function fetchMarketNews() {
+    const apiKey = '5c50e259f11a49b685c60a68410084a0'; // <-- Replace with your NewsAPI key
+   const url = `https://newsapi.org/v2/everything?q=stock%20market&language=en&sortBy=publishedAt&pageSize=50&apiKey=${apiKey}`;
+
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+
+      if (!data.articles || data.articles.length === 0) {
+        newsContainer.innerHTML = '<p>No news found.</p>';
+        return;
+      }
+
+      newsContainer.innerHTML = '';
+
+      data.articles.forEach(article => {
+        const articleEl = document.createElement('article');
+        articleEl.innerHTML = `
+          <a href="${article.url}" target="_blank" rel="noopener noreferrer">${article.title}</a>
+          <p>${article.description || ''}</p>
+          <small>Source: ${article.source.name} | ${new Date(article.publishedAt).toLocaleString()}</small>
+        `;
+        newsContainer.appendChild(articleEl);
+      });
+
+      errorMessage.textContent = '';
+
+    } catch (error) {
+      errorMessage.textContent = `Failed to fetch news: ${error.message}`;
+      newsContainer.innerHTML = '';
+    }
+  }
+
+
+  fetchMarketNews();
+
+  
+setInterval(fetchMarketNews, 1800000);
+</script>
+
+</body>
+</html>
