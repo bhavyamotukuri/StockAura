@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StockAura - US Stocks</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+      </ul>
+    </li>
+    <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="stocks-main">
+  <h1>Live US Stock Prices</h1>
+  <table class="stock-table" id="us-stocks">
+    <thead>
+      <tr>
+        <th>Name</th><th>Symbol</th><th>Price (USD)</th><th>Change</th><th>% Change</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script>
+  const finnhubKey = "d1npc4hr01qovv8kn4ugd1npc4hr01qovv8kn4v0";
+
+  const usStocks = [
+    { name: "Apple", symbol: "AAPL" },
+    { name: "Tesla", symbol: "TSLA" },
+    { name: "Amazon", symbol: "AMZN" },
+    { name: "Microsoft", symbol: "MSFT" },
+    { name: "Google", symbol: "GOOGL" },
+    { name: "Meta", symbol: "META" },
+    { name: "NVIDIA", symbol: "NVDA" },
+    { name: "AMD", symbol: "AMD" },
+    { name: "Intel", symbol: "INTC" },
+    { name: "Netflix", symbol: "NFLX" },
+    { name: "Adobe", symbol: "ADBE" },
+    { name: "Salesforce", symbol: "CRM" },
+    { name: "Uber", symbol: "UBER" },
+    { name: "Lyft", symbol: "LYFT" },
+    { name: "Boeing", symbol: "BA" }
+  ];
+
+  async function fetchQuote(symbol) {
+    try {
+      const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${finnhubKey}`);
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      console.error("Error fetching", symbol, e);
+      return null;
+    }
+  }
+
+  function format(value, isPercent = false) {
+    if (value == null || isNaN(value)) return isPercent ? "0.00%" : "0.00";
+    return (isPercent ? (value > 0 ? "+" : "") : (value > 0 ? "+" : "")) + value.toFixed(2) + (isPercent ? "%" : "");
+  }
+
+  async function updateUSStocks() {
+    const tbody = document.querySelector("#us-stocks tbody");
+    tbody.innerHTML = "";
+    for (let stock of usStocks) {
+      const quote = await fetchQuote(stock.symbol);
+      let price = "N/A", change = 0, percent = 0;
+      if (quote?.c) {
+        price = quote.c.toFixed(2);
+        change = quote.d;
+        percent = quote.dp;
+      }
+      const changeClass = change > 0 ? "positive" : (change < 0 ? "negative" : "");
+      tbody.innerHTML += `
+        <tr>
+          <td>${stock.name}</td>
+          <td>${stock.symbol}</td>
+          <td>${price}</td>
+          <td class="${changeClass}">${format(change)}</td>
+          <td class="${changeClass}">${format(percent, true)}</td>
+        </tr>
+      `;
+    }
+  }
+
+  updateUSStocks();
+  setInterval(updateUSStocks, 30000);
+</script>
+
+</body>
+</html>
