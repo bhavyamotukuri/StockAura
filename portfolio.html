@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Portfolio – StockAura</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+      </ul>
+    </li>
+    <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="portfolio-main">
+  <h1>Your Portfolio</h1>
+  <form id="portfolio-form">
+    <input type="text" id="stock-input" placeholder="Enter Stock Ticker (e.g. AAPL)" maxlength="5" required />
+    <button type="submit">Add</button>
+  </form>
+
+  <ul id="portfolio-list">
+   
+  </ul>
+
+  <p class="note">Save your favorite stocks and track performance here in future updates!</p>
+</main>
+
+<script>
+const form = document.getElementById('portfolio-form');
+const stockInput = document.getElementById('stock-input');
+const portfolioList = document.getElementById('portfolio-list');
+
+let savedStocks = JSON.parse(localStorage.getItem('favoriteStocks')) || [];
+
+const apiKey = 'LFW41XDC31AGXDCU'; 
+
+async function fetchStockPrice(ticker) {
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const quote = data['Global Quote'];
+    if (!quote || Object.keys(quote).length === 0 || !quote['05. price']) {
+      console.warn(`No valid data for: ${ticker}`, data);
+      return null;
+    }
+
+    return {
+      price: parseFloat(quote['05. price']),
+      change: parseFloat(quote['09. change']),
+      changePercent: quote['10. change percent']
+    };
+  } catch (err) {
+    console.error(`Error fetching stock ${ticker}:`, err);
+    return null;
+  }
+}
+
+async function renderPortfolio() {
+  portfolioList.innerHTML = '';
+
+  if (savedStocks.length === 0) {
+    portfolioList.innerHTML = '<li>No stocks added yet.</li>';
+    return;
+  }
+
+  savedStocks.forEach(stock => {
+    const li = document.createElement('li');
+    li.textContent = stock + ' - fetching price...';
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '×';
+    removeBtn.classList.add('remove-btn');
+    removeBtn.title = 'Remove stock';
+    removeBtn.onclick = () => {
+      savedStocks = savedStocks.filter(s => s !== stock);
+      savePortfolio();
+      renderPortfolio();
+    };
+    li.appendChild(removeBtn);
+    portfolioList.appendChild(li);
+  });
+
+  const pricePromises = savedStocks.map(ticker => fetchStockPrice(ticker));
+  const prices = await Promise.all(pricePromises);
+
+  prices.forEach((priceData, idx) => {
+    const li = portfolioList.children[idx];
+    const stock = savedStocks[idx];
+    if (priceData) {
+      const { price, change, changePercent } = priceData;
+      const changeClass = change >= 0 ? 'price-up flash-green' : 'price-down flash-red';
+      const trendIcon = change >= 0 ? '📈' : '📉';
+      li.innerHTML = `
+        <strong>${stock}</strong>: $${price.toFixed(2)}
+        <span class="price-change ${changeClass}">
+          ${trendIcon} ${change >= 0 ? '+' : ''}${change.toFixed(2)}, ${changePercent}
+        </span>
+      `;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '×';
+      removeBtn.classList.add('remove-btn');
+      removeBtn.title = 'Remove stock';
+      removeBtn.onclick = () => {
+        savedStocks = savedStocks.filter(s => s !== stock);
+        savePortfolio();
+        renderPortfolio();
+      };
+      li.appendChild(removeBtn);
+    } else {
+      li.innerHTML = `<strong>${stock}</strong>: Price data unavailable`;
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = '×';
+      removeBtn.classList.add('remove-btn');
+      removeBtn.title = 'Remove stock';
+      removeBtn.onclick = () => {
+        savedStocks = savedStocks.filter(s => s !== stock);
+        savePortfolio();
+        renderPortfolio();
+      };
+      li.appendChild(removeBtn);
+    }
+  });
+}
+
+function savePortfolio() {
+  localStorage.setItem('favoriteStocks', JSON.stringify(savedStocks));
+}
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const stock = stockInput.value.trim().toUpperCase();
+
+  if (!/^[A-Z]{1,5}$/.test(stock)) {
+    alert('Please enter a valid stock ticker (1-5 uppercase letters).');
+    return;
+  }
+
+  if (savedStocks.includes(stock)) {
+    alert('This stock is already in your portfolio.');
+    return;
+  }
+
+  savedStocks.push(stock);
+  savePortfolio();
+  renderPortfolio();
+  stockInput.value = '';
+  stockInput.focus();
+});
+
+renderPortfolio();
+</script>
+
+</body>
+</html>
