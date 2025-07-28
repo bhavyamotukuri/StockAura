@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Currency Toggle - StockAura</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+        
+      </ul>
+    </li>
+     <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<h1>US Stocks Prices with Currency Toggle</h1>
+
+<div id="toggleContainer">
+  <button id="toggleCurrency">Show in INR</button>
+</div>
+
+<ul id="stock-list">
+ 
+</ul>
+
+<script>
+  const finnhubKey = "d1npc4hr01qovv8kn4ugd1npc4hr01qovv8kn4v0";
+  const exchangeRate = 83.2; 
+
+  const usStocks = [
+    { name: "Apple", symbol: "AAPL" },
+    { name: "Tesla", symbol: "TSLA" },
+    { name: "Amazon", symbol: "AMZN" },
+    { name: "Microsoft", symbol: "MSFT" },
+    { name: "Google", symbol: "GOOGL" },
+    { name: "Meta", symbol: "META" },
+    { name: "NVIDIA", symbol: "NVDA" },
+    { name: "AMD", symbol: "AMD" },
+    { name: "Intel", symbol: "INTC" },
+    { name: "Netflix", symbol: "NFLX" },
+    { name: "Adobe", symbol: "ADBE" },
+    { name: "Salesforce", symbol: "CRM" },
+    { name: "Uber", symbol: "UBER" },
+    { name: "Lyft", symbol: "LYFT" },
+    { name: "Boeing", symbol: "BA" }
+  ];
+
+  let usStockData = [];
+  let showINR = false;
+
+  async function fetchFinnhubQuote(symbol) {
+    try {
+      const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${finnhubKey}`);
+      const data = await res.json();
+      if (data && data.c !== undefined) return data;
+    } catch (e) {
+      console.error("Finnhub error:", e);
+    }
+    return null;
+  }
+
+  function renderList() {
+    const ul = document.getElementById("stock-list");
+    ul.innerHTML = "";
+    for (let stock of usStockData) {
+      if (!stock.c) continue; // skip if no price
+      const price = showINR ? (stock.c * exchangeRate).toFixed(2) : stock.c.toFixed(2);
+      const currency = showINR ? "INR" : "USD";
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div class="stock-name-symbol">${stock.name} (${stock.symbol})</div>
+        <div class="stock-price">${price} ${currency}</div>
+      `;
+      ul.appendChild(li);
+    }
+  }
+
+  async function loadStockData() {
+    usStockData = [];
+    for (const stock of usStocks) {
+      const quote = await fetchFinnhubQuote(stock.symbol);
+      if (quote) {
+        usStockData.push({ ...quote, name: stock.name, symbol: stock.symbol });
+      }
+    }
+    renderList();
+  }
+
+  document.getElementById("toggleCurrency").addEventListener("click", () => {
+    showINR = !showINR;
+    document.getElementById("toggleCurrency").textContent = showINR ? "Show in USD" : "Show in INR";
+    renderList();
+  });
+
+  loadStockData();
+</script>
+
+</body>
+</html>
