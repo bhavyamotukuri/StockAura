@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>StockAura - Live Stocks</title>   
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+        
+      </ul>
+    </li>
+     <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <h1>Live Stock Prices</h1>
+  <div class="stocks-container">
+    <table class="stock-table" id="us-stocks">
+      <thead>
+        <tr>
+          <th>Name</th><th>Symbol</th><th>Price (USD)</th><th>Change</th><th>% Change</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <table class="stock-table" id="india-stocks">
+      <thead>
+        <tr>
+          <th>Name</th><th>Symbol</th><th>Price (INR)</th><th>Change</th><th>% Change</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  const finnhubKey = "d1npc4hr01qovv8kn4ugd1npc4hr01qovv8kn4v0"; // Replace with your actual Finnhub key
+
+  const usStocks = [
+    { name: "Apple", symbol: "AAPL" },
+    { name: "Tesla", symbol: "TSLA" },
+    { name: "Amazon", symbol: "AMZN" },
+    { name: "Microsoft", symbol: "MSFT" },
+    { name: "Google", symbol: "GOOGL" },
+    { name: "Meta", symbol: "META" },
+    { name: "NVIDIA", symbol: "NVDA" },
+    { name: "AMD", symbol: "AMD" },
+    { name: "Intel", symbol: "INTC" },
+    { name: "Netflix", symbol: "NFLX" },
+    { name: "Adobe", symbol: "ADBE" },
+    { name: "Salesforce", symbol: "CRM" },
+    { name: "Uber", symbol: "UBER" },
+    { name: "Lyft", symbol: "LYFT" },
+    { name: "Boeing", symbol: "BA" }
+  ];
+
+  const indiaStocks = [
+    { name: "Reliance", symbol: "RELIANCE.NS" },
+    { name: "Infosys", symbol: "INFY.NS" },
+    { name: "TCS", symbol: "TCS.NS" },
+    { name: "HDFC Bank", symbol: "HDFCBANK.NS" },
+    { name: "ICICI Bank", symbol: "ICICIBANK.NS" },
+    { name: "Axis Bank", symbol: "AXISBANK.NS" },
+    { name: "HCL Tech", symbol: "HCLTECH.NS" },
+    { name: "Wipro", symbol: "WIPRO.NS" },
+    { name: "Bajaj Finance", symbol: "BAJFINANCE.NS" },
+    { name: "Bharti Airtel", symbol: "BHARTIARTL.NS" },
+    { name: "ITC", symbol: "ITC.NS" },
+    { name: "Maruti Suzuki", symbol: "MARUTI.NS" },
+    { name: "Larsen & Toubro", symbol: "LT.NS" },
+    { name: "SBI", symbol: "SBIN.NS" },
+    { name: "Asian Paints", symbol: "ASIANPAINT.NS" }
+  ];
+
+  // Fetch US stock data from Finnhub
+  async function fetchFinnhubQuote(symbol) {
+    const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${finnhubKey}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data && data.c !== undefined) {
+        return data;
+      }
+    } catch (e) {
+      console.error("Finnhub error", symbol, e);
+    }
+    return null;
+  }
+
+ 
+  async function fetchYahooQuote(symbol) {
+    try {
+      const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`);
+      const data = await res.json();
+      const q = data.quoteResponse.result?.[0];
+      if (q?.regularMarketPrice !== undefined) {
+        return {
+          c: q.regularMarketPrice,
+          d: q.regularMarketChange,
+          dp: q.regularMarketChangePercent,
+        };
+      }
+    } catch (e) {
+      console.error("Yahoo Finance error", symbol, e);
+    }
+    return null;
+  }
+
+  function formatChange(change) {
+    if (change === null || isNaN(change)) return "0.00";
+    const fixed = change.toFixed(2);
+    return change > 0 ? `+${fixed}` : fixed;
+  }
+
+  function formatPercent(percent) {
+    if (percent === null || isNaN(percent)) return "0.00%";
+    const fixed = percent.toFixed(2);
+    return percent > 0 ? `+${fixed}%` : `${fixed}%`;
+  }
+
+  async function updateStocksTable(stocks, tableId, fetchQuoteFunc) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    tbody.innerHTML = "";
+
+    for (let stock of stocks) {
+      const quote = await fetchQuoteFunc(stock.symbol);
+      let price = "N/A", change = 0, percent = 0;
+
+      if (quote) {
+        price = quote.c?.toFixed(2) ?? "N/A";
+        change = quote.d ?? 0;
+        percent = quote.dp ?? 0;
+      }
+
+      const changeClass = change > 0 ? "positive" : (change < 0 ? "negative" : "");
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${stock.name}</td>
+        <td>${stock.symbol}</td>
+        <td>${price}</td>
+        <td class="${changeClass}">${formatChange(change)}</td>
+        <td class="${changeClass}">${formatPercent(percent)}</td>
+      `;
+      tbody.appendChild(row);
+    }
+  }
+
+  async function refreshAll() {
+    await Promise.all([
+      updateStocksTable(usStocks, "us-stocks", fetchFinnhubQuote),
+      updateStocksTable(indiaStocks, "india-stocks", fetchYahooQuote)
+    ]);
+  }
+
+  refreshAll();
+  setInterval(refreshAll, 30000); 
+</script>
+
+</body>
+</html>
