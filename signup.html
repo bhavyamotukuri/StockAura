@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up – StockAura</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="auth-main">
+    <h2>Create Your StockAura Account</h2>
+    <form class="auth-form" id="signup-form">
+      <input type="text" id="name" name="name" placeholder="Full Name" required />
+      <input type="email" id="email" name="email" placeholder="Email Address" required />
+      <input type="text" id="aadhar" name="aadhar" placeholder="Aadhar Card Number" maxlength="12" pattern="\d{12}" title="Enter 12-digit Aadhar number" required />
+      <input type="password" id="password" name="password" placeholder="Create Password" required />
+      <button type="submit">Sign Up</button>
+    </form>
+    <p class="auth-note">Already have an account? <a href="login.html">Log in</a></p>
+  </main>
+
+  <script>
+    
+    document.getElementById('signup-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+     
+      const name = document.getElementById('name').value;
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userName', name); 
+
+     
+      window.location.href = 'home.html';
+    });
+  </script>
+</body>
+</html>
