@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StockAura - Indian Stocks</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html">US Stocks</a></li>
+        <li><a href="indianstocks.html" class="active">Indian Stocks</a></li>
+      </ul>
+    </li>
+    <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="stocks-main">
+  <h1>Live Indian Stock Prices</h1>
+  <table class="stock-table" id="india-stocks">
+    <thead>
+      <tr>
+        <th>Name</th><th>Symbol</th><th>Price (INR)</th><th>Change</th><th>% Change</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script>
+  const indiaStocks = [
+    { name: "Reliance", symbol: "RELIANCE.NS" },
+    { name: "Infosys", symbol: "INFY.NS" },
+    { name: "TCS", symbol: "TCS.NS" },
+    { name: "HDFC Bank", symbol: "HDFCBANK.NS" },
+    { name: "ICICI Bank", symbol: "ICICIBANK.NS" },
+    { name: "Axis Bank", symbol: "AXISBANK.NS" },
+    { name: "HCL Tech", symbol: "HCLTECH.NS" },
+    { name: "Wipro", symbol: "WIPRO.NS" },
+    { name: "Bajaj Finance", symbol: "BAJFINANCE.NS" },
+    { name: "Bharti Airtel", symbol: "BHARTIARTL.NS" },
+    { name: "ITC", symbol: "ITC.NS" },
+    { name: "Maruti Suzuki", symbol: "MARUTI.NS" },
+    { name: "Larsen & Toubro", symbol: "LT.NS" },
+    { name: "SBI", symbol: "SBIN.NS" },
+    { name: "Asian Paints", symbol: "ASIANPAINT.NS" }
+  ];
+
+  async function fetchYahooQuote(symbol) {
+    try {
+      const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`);
+      const data = await res.json();
+      const q = data.quoteResponse.result?.[0];
+      return {
+        c: q.regularMarketPrice,
+        d: q.regularMarketChange,
+        dp: q.regularMarketChangePercent,
+      };
+    } catch (e) {
+      console.error("Yahoo error", symbol, e);
+      return null;
+    }
+  }
+
+  function format(value, isPercent = false) {
+    if (value == null || isNaN(value)) return isPercent ? "0.00%" : "0.00";
+    return (value > 0 ? "+" : "") + value.toFixed(2) + (isPercent ? "%" : "");
+  }
+
+  async function updateIndianStocks() {
+    const tbody = document.querySelector("#india-stocks tbody");
+    tbody.innerHTML = "";
+    for (let stock of indiaStocks) {
+      const quote = await fetchYahooQuote(stock.symbol);
+      let price = "N/A", change = 0, percent = 0;
+      if (quote?.c) {
+        price = quote.c.toFixed(2);
+        change = quote.d;
+        percent = quote.dp;
+      }
+      const changeClass = change > 0 ? "positive" : (change < 0 ? "negative" : "");
+      tbody.innerHTML += `
+        <tr>
+          <td>${stock.name}</td>
+          <td>${stock.symbol}</td>
+          <td>${price}</td>
+          <td class="${changeClass}">${format(change)}</td>
+          <td class="${changeClass}">${format(percent, true)}</td>
+        </tr>
+      `;
+    }
+  }
+
+  updateIndianStocks();
+  setInterval(updateIndianStocks, 30000);
+</script>
+
+</body>
+</html>
