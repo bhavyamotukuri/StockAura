@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StockAura - Home</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    main {
+      flex: 1;
+      max-width: 700px;
+      margin: 2rem auto 2rem;
+      background: rgba(20, 20, 30, 0.9);
+      padding: 2.5rem 10rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #9de8e8;
+      margin-bottom: 5.0 rem;
+    }
+    p {
+      color: #9de8e8;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+   
+.center-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #b2fef7;
+  padding: 40px 50px;
+  border-radius: 20px;
+  max-width: 700px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+.center-box h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #77e6ff;
+}
+
+.center-box p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #c7f9ff;
+}
+.logout-btn {
+      margin-left: 2rem;
+      background: #00e6e6;
+      color: #000;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #00cccc;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  
+  if (localStorage.getItem('isLoggedIn') !== 'true') {
+    window.location.href = 'index.html';
+  }
+
+  function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userName');
+    window.location.href = 'index.html';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const name = localStorage.getItem('userName');
+    if (name) {
+      const welcome = document.getElementById('welcome-user');
+      welcome.textContent += `, ${name}`;
+    }
+  });
+</script>
+
+
+<nav class="navbar">
+  <div class="logo">StockAura</div>
+  <ul class="nav-links">
+    <li><a href="home.html">Home</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">Stocks ▾</a>
+      <ul class="dropdown-menu">
+        <li><a href="usstocks.html" class="active">US Stocks</a></li>
+        <li><a href="indianstocks.html">Indian Stocks</a></li>
+        
+      </ul>
+    </li>
+     <li><a href="currency.html">Currency Conversion</a></li>
+    <li><a href="news.html">News</a></li>
+    <li><a href="sentiment.html">Sentiment Analysis</a></li>
+    <li><a href="portfolio.html">Portfolio</a></li>
+    <li><a href="forum.html">Forum</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><button class="logout-btn" onclick="logout()">Logout</button></li>
+  </ul>
+</nav>
+
+<main class="center-box">
+  <h1 id="welcome-user">Welcome to StockAura</h1>
+  <p>Your go-to platform for real-time stock information, market news, sentiment analysis, portfolio tracking, and more!</p>
+  <p>Click the chat icon at the bottom right to ask about any stock ticker, company, or market news instantly.</p>
+</main>
+
+<div id="chatbot-container"></div>
+<script>
+  fetch('chatbot.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('chatbot-container').innerHTML = html;
+      
+      const script = document.createElement('script');
+      script.src = 'chatbot.js';
+      document.body.appendChild(script);
+    })
+    .catch(console.error);
+</script>
+
+</body>
+</html>
